@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template creates a VPC with one public and one private subnet
+
+Resources:
+
+  EffulgenceTestVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+        - Key: Name
+          Value: production
+
+  EffulgenceTestInternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InternetGateway
+
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref EffulgenceTestVPC
+      InternetGatewayId: !Ref EffulgenceTestInternetGateway
+
+  EffulgenceTestPrivateSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: us-east-1a
+      VpcId: !Ref EffulgenceTestVPC
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet
+
+  EffulgenceTestPublicSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: us-east-1a
+      VpcId: !Ref EffulgenceTestVPC
+      CidrBlock: 10.0.2.0/24
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+
+  EffulgenceTestPublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref EffulgenceTestVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+
+  EffulgenceTestPublicRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref EffulgenceTestPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref EffulgenceTestInternetGateway
+
+  EffulgenceTestPrivateRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref EffulgenceTestVPC
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable
+
+  EffulgenceTestPublicSubnetRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref EffulgenceTestPublicSubnet
+      RouteTableId: !Ref EffulgenceTestPublicRouteTable
+
+  EffulgenceTestPrivateSubnetRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref EffulgenceTestPrivateSubnet
+      RouteTableId: !Ref EffulgenceTestPrivateRouteTable
